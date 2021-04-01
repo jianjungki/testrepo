@@ -97,40 +97,36 @@ func (p *PoiData) Excel(f *excelize.File, row int) {
   }
   valueOf := reflect.ValueOf(p)
   for i := 0; i < fields.NumField(); i++ {
-	   switch fields.Field(i).Type.Kind() {
-       case reflect.String:
-            eleName := fields.Field(i).Name
-            fmt.Println(eleName)
-            //var s string
-            fmt.Printf("%s\n", valueOf.Elem().FieldByName(eleName))
-            //fields.Field(i).SetString(s)
-        case reflect.Float64, reflect.Float32:
-            eleName := fields.Field(i).Name
-            fmt.Println(eleName)
-            //var s string
-            fmt.Printf("%f\n", valueOf.Elem().FieldByName(eleName))
-        case reflect.Int, reflect.Int8, reflect.Int16,
-        reflect.Int32, reflect.Int64, reflect.Uint8, reflect.Uint16,reflect.Uint32, reflect.Uint64:
-          eleName := fields.Field(i).Name
-          fmt.Println(eleName)
-          //var s string
-          fmt.Printf("%d\n", valueOf.Elem().FieldByName(eleName))
-          //fields.Field(i).SetString(s)
-        
-    }
+	  eleName := fields.Field(i).Name
+		rowVal := ""
+		switch fields.Field(i).Type.Kind() {
+		case reflect.String:
+			rowVal = valueOf.Elem().FieldByName(eleName).String()
+		case reflect.Float64, reflect.Float32:
+			rowVal = fmt.Sprintf("%f", valueOf.Elem().FieldByName(eleName).Float())
+		case reflect.Int, reflect.Int8, reflect.Int16,
+			reflect.Int32, reflect.Int64, reflect.Uint8,
+			reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			rowVal = fmt.Sprintf("%d", valueOf.Elem().FieldByName(eleName).Int())
+
+		}
+    err := f.SetCellValue(sheetName, Div(i+1)+fmt.Sprintf("%d", row), rowVal)
+		if err != nil {
+			fmt.Println("excel生成错误", err)
+		}
 	}
 }
 
 
 func Div(Num int) string {
-	const alphabetNum = 25
+	const alphabetNum = 26
 	var (
 		Str  string = ""
 		k    int
 		temp []int
 	)
 	//用来匹配的字符A-Z
-	Slice := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
+	Slice := []string{"", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
 		"P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
 
 	if Num > alphabetNum {
