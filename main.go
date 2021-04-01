@@ -65,11 +65,8 @@ type PoiData struct {
 	AggregatorPositionCode string `xlsx:"Aggregator_Position_Code" validate:"required"`
 	AggregatorName         string `xlsx:"Aggregator_Name" validate:"required"`
 	Active                 int    `xlsx:"Active" validate:"oneof=0 1"`
-	PoiExtend
-}
-
-type PoiExtend struct {
-	Longitude float64 `xlsx:"Longitude" validate:"longitude"`
+	/**************poi 信息**************/
+  Longitude float64 `xlsx:"Longitude" validate:"longitude"`
 	//Latitude               float64 `xlsx:"Latitude" validate:"latitude"`
 	Latitude float64 `xlsx:"Latitude"`
 	//ProductType            string  `xlsx:"Product_Type" validate:"required"`
@@ -81,9 +78,9 @@ type PoiExtend struct {
 	PostCode       string `xlsx:"Post_Code"`
 	PlatformAreaID int    `xlsx:"Platform_Area_ID"`
 	GeoHash        string `xlsx:"Geo_Hash"`
-
-	LocationCityCode string `xlsx:"Location_City_Code"`
+  /**************poi 信息**************/
 }
+
 
 
 func (p PoiData) GetXLSXSheetName() string {
@@ -95,17 +92,32 @@ func (p *PoiData) Excel(f *excelize.File, row int) {
 	sheetName := p.GetXLSXSheetName()
 	f.NewSheet(sheetName)
 	fields := reflect.TypeOf(p).Elem()
-	for i := 0; i < fields.NumField(); i++ {
-		var err error
-		if i == 0 {
-			err = f.SetCellValue(sheetName, Div(i+1)+fmt.Sprintf("%d", row), row-1)
-		} else {
-			rowVal := reflect.ValueOf(fields.Field(i))
-			err = f.SetCellValue(sheetName, Div(i+1)+fmt.Sprintf("%d", row), rowVal)
-		}
-		if err != nil {
-			fmt.Printf("excel生成错误", err)
-		}
+	if err := f.SetCellValue(sheetName, Div(1)+fmt.Sprintf("%d", row), row-1); err != nil {
+    fmt.Printf("excel生成错误", err)
+  }
+  valueOf := reflect.ValueOf(p)
+  for i := 0; i < fields.NumField(); i++ {
+	   switch fields.Field(i).Type.Kind() {
+       case reflect.String:
+            eleName := fields.Field(i).Name
+            fmt.Println(eleName)
+            //var s string
+            fmt.Printf("%s\n", valueOf.Elem().FieldByName(eleName))
+            //fields.Field(i).SetString(s)
+        case reflect.Float64, reflect.Float32:
+            eleName := fields.Field(i).Name
+            fmt.Println(eleName)
+            //var s string
+            fmt.Printf("%f\n", valueOf.Elem().FieldByName(eleName))
+        case reflect.Int, reflect.Int8, reflect.Int16,
+        reflect.Int32, reflect.Int64, reflect.Uint8, reflect.Uint16,reflect.Uint32, reflect.Uint64:
+          eleName := fields.Field(i).Name
+          fmt.Println(eleName)
+          //var s string
+          fmt.Printf("%d\n", valueOf.Elem().FieldByName(eleName))
+          //fields.Field(i).SetString(s)
+        
+    }
 	}
 }
 
@@ -171,10 +183,9 @@ func main() {
   outfile := excelize.NewFile()
   poiData := []PoiData{{
     StationName: "test",
-    PoiExtend: PoiExtend{
-      Longitude: 123.999,
-      Latitude: 52.222,
-    },
+    Longitude: 123.999,
+    Latitude: 52.222,
+    
   }}
   for key, poiItem := range poiData {
 		if key == 0 {
